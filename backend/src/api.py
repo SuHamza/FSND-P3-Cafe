@@ -81,16 +81,12 @@ def create_drinks(payload):
     body = request.get_json()
     # print(body)
     new_title = body.get('title', None)
-    print(str(new_title))
     new_recipe = body.get('recipe', None)
     long_recipe = [{"color": new_recipe['color'], "name":new_recipe['name'], "parts": new_recipe['parts']}]
-    print(json.dumps(long_recipe))
 
     try:
         drink = Drink(title=str(new_title), recipe=json.dumps(long_recipe))
-        print(drink)
         drink.insert()
-        print('TRYYYY!!!')
 
         return jsonify({
             'success': True,
@@ -113,7 +109,34 @@ def create_drinks(payload):
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks/<int:drink_id>', methods=['PATCH'])
+@requires_auth('patch:drinks')
+def update_drinks(payload, drink_id):
+    body = request.get_json()
+    # print(body)
+    new_title = body.get('title', None)
+    new_recipe = body.get('recipe', None)
 
+    try:
+        drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
+        if drink is None:
+            # No Drinks found!
+            abort(404)
+        
+        if new_title:
+            drink.title = new_title
+        if new_recipe:
+            long_recipe = [{"color": new_recipe['color'], "name":new_recipe['name'], "parts": new_recipe['parts']}]
+            drink.recipe = json.dumps(long_recipe)
+        drink.update()
+
+        return jsonify({
+            'success': True,
+            'drinks': drink.long()
+        })
+
+    except:
+        abort(422)
 
 '''
 @TODO implement endpoint
@@ -125,7 +148,24 @@ def create_drinks(payload):
     returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks/<int:drink_id>', methods=['DELETE'])
+@requires_auth('delete:drinks')
+def delete_drinks(payload, drink_id):
+    try:
+        drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
+        if drink is None:
+            # No Drinks found!
+            abort(404)
+        
+        drink.delete()
 
+        return jsonify({
+            'success': True,
+            'drinks': drink_id
+        })
+
+    except:
+        abort(422)
 
 ## Error Handling
 '''
@@ -159,8 +199,7 @@ def unprocessable(error):
 '''
 @TODO implement error handler for AuthError
     error handler should conform to general task above 
-'''
-'''
+#####################
 Reference: Auth0 Blog
 https://auth0.com/blog/using-python-flask-and-angular-to-build-modern-web-apps-part-2/
 '''
