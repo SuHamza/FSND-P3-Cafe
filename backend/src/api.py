@@ -77,15 +77,20 @@ def get_drinks_detail(payload):
 '''
 @app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
-def create_drinks():
+def create_drinks(payload):
     body = request.get_json()
-    print(body)
+    # print(body)
     new_title = body.get('title', None)
+    print(str(new_title))
     new_recipe = body.get('recipe', None)
+    long_recipe = [{"color": new_recipe['color'], "name":new_recipe['name'], "parts": new_recipe['parts']}]
+    print(json.dumps(long_recipe))
 
     try:
-        drink = Drink(title=new_title, recipe=new_recipe)
+        drink = Drink(title=str(new_title), recipe=json.dumps(long_recipe))
+        print(drink)
         drink.insert()
+        print('TRYYYY!!!')
 
         return jsonify({
             'success': True,
