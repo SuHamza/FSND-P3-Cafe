@@ -82,7 +82,8 @@ def create_drinks(payload):
     # print(body)
     new_title = body.get('title', None)
     new_recipe = body.get('recipe', None)
-    long_recipe = [{"color": new_recipe['color'], "name":new_recipe['name'], "parts": new_recipe['parts']}]
+    print(new_recipe)
+    long_recipe = [{"color": r['color'], "name":r['name'], "parts": r['parts']} for r in new_recipe]
 
     try:
         drink = Drink(title=str(new_title), recipe=json.dumps(long_recipe))
@@ -90,7 +91,7 @@ def create_drinks(payload):
 
         return jsonify({
             'success': True,
-            'drinks': drink.long()
+            'drinks': [drink.long()]
         })
 
     except:
@@ -126,13 +127,13 @@ def update_drinks(payload, drink_id):
         if new_title:
             drink.title = new_title
         if new_recipe:
-            long_recipe = [{"color": new_recipe['color'], "name":new_recipe['name'], "parts": new_recipe['parts']}]
+            long_recipe = [{"color": r['color'], "name":r['name'], "parts": r['parts']} for r in new_recipe]
             drink.recipe = json.dumps(long_recipe)
         drink.update()
 
         return jsonify({
             'success': True,
-            'drinks': drink.long()
+            'drinks': [drink.long()]
         })
 
     except:
@@ -176,7 +177,7 @@ def unprocessable(error):
     return jsonify({
                     "success": False, 
                     "error": 422,
-                    "message": "unprocessable"
+                    "message": "Unprocessable Request!"
                     }), 422
 
 '''
@@ -194,7 +195,29 @@ def unprocessable(error):
 @TODO implement error handler for 404
     error handler should conform to general task above 
 '''
-
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        'success': False,
+        'error': 404,
+        'message': 'Resource not found!'
+    }), 404
+      
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        'success': False,
+        'error': 400,
+        'message': 'Bad Request!'
+    }), 400
+    
+@app.errorhandler(405)
+def not_allowed(error):
+    return jsonify({
+        'success': False,
+        'error': 405,
+        'message': 'Method not allowed!'
+    }), 405
 
 '''
 @TODO implement error handler for AuthError
